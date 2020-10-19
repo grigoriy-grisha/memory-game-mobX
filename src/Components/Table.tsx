@@ -3,7 +3,11 @@ import { guessed } from "../const";
 import { useNotesStore } from "../NotesContext";
 import { CardItem } from "./CardItem";
 
-export const Table = () => {
+type PropType = {
+  time: number;
+};
+
+export const Table: React.FC<PropType> = ({ time }) => {
   const notesStore = useNotesStore();
   const [cards, setCards] = React.useState<Array<string>>([]);
 
@@ -18,6 +22,8 @@ export const Table = () => {
   const [color, setColor] = React.useState<boolean>(false);
   const [guessedCards, setGuessedCards] = React.useState<Array<string>>([]);
 
+  const [won, setWon] = React.useState<boolean | null>(null);
+
   React.useEffect(() => {
     setGuessedCards((prev) => [...prev, ...guessed]);
     setTimeout(() => {
@@ -29,7 +35,6 @@ export const Table = () => {
   React.useEffect(() => {
     let timeout: any;
     if (prevId) {
-        
       setPause(true);
 
       if (prevLetter === newLetter) {
@@ -49,6 +54,22 @@ export const Table = () => {
     return () => {
       clearTimeout(timeout);
     };
+  }, [prevId]);
+
+  React.useEffect(() => {
+    if (!time && !(guessedCards.length === guessed.length)) {
+      setWon(false);
+    }
+  }, [time]);
+
+  React.useEffect(() => {
+    if (time && guessedCards.length === guessed.length) {
+      console.log(guessedCards.length === guessed.length);
+      console.log(time);
+      console.log(time && guessedCards.length === guessed.length);
+
+      setWon(true);
+    }
   }, [prevId]);
 
   const getLetter = (
@@ -72,19 +93,25 @@ export const Table = () => {
   };
   return (
     <div className="table">
-      {cards.map((item: string, index) => (
-        <CardItem
-          pause={pause}
-          guessed={guessedCards.includes(item)}
-          color={color}
-          id={`${item}_${index}`}
-          newId={newId}
-          prevId={prevId}
-          onCLickCard={getLetter}
-          key={`${item}_${index}`}
-          latter={item}
-        />
-      ))}
+      {won === null && !won ? (
+        cards.map((item: string, index) => (
+          <CardItem
+            pause={pause}
+            guessed={guessedCards.includes(item)}
+            color={color}
+            id={`${item}_${index}`}
+            newId={newId}
+            prevId={prevId}
+            onCLickCard={getLetter}
+            key={`${item}_${index}`}
+            latter={item}
+          />
+        ))
+      ) : won ? (
+        <h1>Win!</h1>
+      ) : (
+        <h1>Defeat!</h1>
+      )}
     </div>
   );
 };
