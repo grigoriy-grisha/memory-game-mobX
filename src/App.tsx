@@ -1,33 +1,15 @@
 import React from "react";
+import { ContainerGameComponent } from "./Components/ContainerGameComponent";
 import { Table } from "./Components/Table";
 import { Timer } from "./Components/Timer";
 import { NotesProvider } from "./NotesContext";
+import { RootStateProvider } from "./RootStateContext";
 
 const App: React.FC = () => {
-  const [time, setTime] = React.useState(10);
-  const timerRef = React.useRef<any>();
-
-  React.useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTime((prev) => --prev);
-    }, 1000);
-
-    return () => {
-      clearInterval(timerRef.current);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (!time) {
-      console.log(time);
-      clearInterval(timerRef.current);
-    }
-  }, [time]);
   return (
-    <NotesProvider>
-      <Timer time={time} />
-      <Table time={time} />
-    </NotesProvider>
+    <RootStateProvider>
+      <ContainerGameComponent />
+    </RootStateProvider>
   );
 };
 
