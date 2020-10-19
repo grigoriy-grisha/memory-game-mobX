@@ -1,6 +1,6 @@
-import { action, computed, observable } from "mobx";
+import { action, observable } from "mobx";
+import { act } from "react-dom/test-utils";
 
-type latterType = "newLetter" | "prevLetter";
 type idType = "newId" | "prevId";
 
 export class GameStore {
@@ -25,18 +25,15 @@ export class GameStore {
     "U",
     "U",
   ];
-
-  @observable newLetter: string = "";
-  @observable prevLetter: string = "";
   @observable newId: string = "";
   @observable prevId: string = "";
 
-  @computed get getuessedCards(): Array<string> {
-    return this.guessedCards;
-  }
-
-  @action addGuessedCards = (guessed: string) => {
-    this.guessedCards.push(guessed);
+  @action addGuessedCards = (guessed: string | Array<string>) => {
+    if (Array.isArray(guessed)) {
+      this.guessedCards = [...this.guessedCards, ...guessed];
+    } else {
+      this.guessedCards = [...this.guessedCards, guessed];
+    }
   };
 
   @action clearGuessedCards = () => {
@@ -52,14 +49,6 @@ export class GameStore {
     return this.cards;
   };
 
-  @action setLetter = (latter: string, type: latterType) => {
-    if (type === "newLetter") {
-      this.newLetter = latter;
-    } else {
-      this.prevLetter = latter;
-    }
-  };
-
   @action setId = (id: string, type: idType) => {
     if (type === "newId") {
       this.newId = id;
@@ -67,30 +56,4 @@ export class GameStore {
       this.prevId = id;
     }
   };
-
-  @computed getId = (type: idType): string => {
-    if (type === "newId") {
-      return this.newId;
-    } else {
-      return this.prevId;
-    }
-  };
-
-  @computed get getCards() {
-    return this.cards;
-  }
-
-  @computed get getNewId() {
-    return this.newId;
-  }
-  @computed get getPrevId() {
-    return this.prevId;
-  }
-
-  @computed get getNewLetter() {
-    return this.newLetter;
-  }
-  @computed get getPrevLetter() {
-    return this.prevLetter;
-  }
 }

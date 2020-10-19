@@ -1,21 +1,29 @@
+import { useObserver } from "mobx-react";
 import React from "react";
 import { guessed } from "../const";
-import { GameStore } from "../GameStore";
-import { useNotesStore } from "../NotesContext";
+import { useRootStore } from "../RootStateContext";
 import { equalAny, lengthArr } from "../utils";
 import { CardItem } from "./CardItem";
 
 type PropType = {
   time: number;
-  gameStore: GameStore
 };
 
-export const Table: React.FC<PropType> = ({ time, gameStore }) => {
-  const notesStore = useNotesStore();
-  const [cards, setCards] = React.useState<Array<string>>([]);
+export const Table: React.FC<PropType> = ({ time }) => {
+  const { gameStore } = useRootStore();
 
-  const [newId, setNewId] = React.useState<string>("");
-  const [prevId, setPrevId] = React.useState<string>("");
+  const timeoutRef = React.useRef<any>();
+
+  const {
+    prevId,
+    newId,
+    setId,
+    mixCards,
+    addGuessedCards,
+    clearGuessedCards,
+    guessedCards,
+    cards,
+  } = gameStore;
 
   const [pause, setPause] = React.useState<boolean>(false);
 
@@ -23,57 +31,58 @@ export const Table: React.FC<PropType> = ({ time, gameStore }) => {
   const [newLetter, setNewLetter] = React.useState<string>("");
 
   const [color, setColor] = React.useState<boolean>(false);
-  const [guessedCards, setGuessedCards] = React.useState<Array<string>>([]);
 
   const [won, setWon] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    setGuessedCards((prev) => [...prev, ...guessed]);
-    setTimeout(() => {
-      setGuessedCards([]);
+    addGuessedCards(guessed);
+    const timeot = setTimeout(() => {
+      clearGuessedCards();
     }, 3000);
-    setCards(gameStore.mixCards());
-  }, [notesStore]);
+    mixCards();
+
+    return () => {
+      clearTimeout(timeot);
+    };
+  }, []);
 
   React.useEffect(() => {
-    let timeout: any;
     if (prevId) {
       setPause(true);
 
       if (equalAny<string>(prevLetter, newLetter)) {
         setColor(true);
-        timeout = setTimeout(() => {
-          setId();
+        timeoutRef.current = setTimeout(() => {
+          сlearUse();
         }, 1000);
-
-        setGuessedCards((prev) => [...prev, newLetter]);
+        addGuessedCards(newLetter);
       } else {
         setColor(false);
-        timeout = setTimeout(() => {
-          setId();
+        timeoutRef.current = setTimeout(() => {
+          сlearUse();
         }, 1000);
       }
     }
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(timeoutRef.current);
     };
-  }, [prevId]);
+  }, [prevId, addGuessedCards, newLetter, prevLetter]);
 
   React.useEffect(() => {
-    if (!time && !equalAny<number>(lengthArr(guessedCards),lengthArr(guessed))) {
+    if (
+      !time &&
+      !equalAny<number>(lengthArr(guessedCards), lengthArr(guessed))
+    ) {
       setWon(false);
     }
   }, [time]);
 
   React.useEffect(() => {
-    if (time && equalAny<number>(lengthArr(guessedCards),lengthArr(guessed))) {
-      console.log(guessedCards.length === guessed.length);
-      console.log(time);
-      console.log(time && guessedCards.length === guessed.length);
-
+    if (time && equalAny<number>(lengthArr(guessedCards), lengthArr(guessed))) {
       setWon(true);
     }
   }, [prevId]);
+  
 
   const getLetter = (
     event: React.MouseEvent<HTMLDivElement>,
@@ -81,40 +90,42 @@ export const Table: React.FC<PropType> = ({ time, gameStore }) => {
     letter: string
   ) => {
     if (!pause) {
-      setPrevId(newId);
-      setNewId(id);
+      setId(newId, "prevId");
+      setId(id, "newId");
       setPrevLetter(newLetter);
       setNewLetter(letter);
     }
   };
 
-  const setId = () => {
+  const сlearUse = () => {
     setPause(true);
-    setPrevId("");
-    setNewId("");
+    setId("", "prevId");
+    setId("", "newId");
     setPause(false);
   };
-  return (
-    <div className="table">
-      {won === null && !won ? (
-        cards.map((item: string, index) => (
-          <CardItem
-            pause={pause}
-            guessed={guessedCards.includes(item)}
-            color={color}
-            id={`${item}_${index}`}
-            newId={newId}
-            prevId={prevId}
-            onCLickCard={getLetter}
-            key={`${item}_${index}`}
-            latter={item}
-          />
-        ))
-      ) : won ? (
-        <h1>Win!</h1>
-      ) : (
-        <h1>Defeat!</h1>
-      )}
-    </div>
-  );
+  return useObserver(() => {
+    return (
+      <div className="table">
+        {won === null && !won ? (
+          cards.map((item: string, index) => (
+            <CardItem
+              pause={pause}
+              guessed={guessedCards.includes(item)}
+              color={color}
+              id={`${item}_${index}`}
+              newId={newId}
+              prevId={prevId}
+              onCLickCard={getLetter}
+              key={`${item}_${index}`}
+              latter={item}
+            />
+          ))
+        ) : won ? (
+          <h1 className="green">Win!</h1>
+        ) : (
+          <h1 className="red">Defeat!</h1>
+        )}
+      </div>
+    );
+  });
 };

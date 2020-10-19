@@ -1,13 +1,10 @@
-import { useObserver } from "mobx-react";
 import React from "react";
-import { useRootStore } from "../RootStateContext";
-import { Reset } from "./Reset";
+import { timeStart } from "../const";
 import { Table } from "./Table";
 import { Timer } from "./Timer";
 
 export const ContainerGameComponent: React.FC = () => {
-  const { gameStore } = useRootStore();
-  const [time, setTime] = React.useState(10);
+  const [time, setTime] = React.useState(timeStart);
   const timerRef = React.useRef<any>();
 
   React.useEffect(() => {
@@ -26,11 +23,10 @@ export const ContainerGameComponent: React.FC = () => {
     }
   }, [time]);
 
-  return useObserver(() => (
+  return (
     <>
       <Timer time={time} />
-      <Table time={time} gameStore={gameStore} />
-      <Reset />
+      <Table time={time} />
     </>
-  ));
+  );
 };
