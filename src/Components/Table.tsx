@@ -2,16 +2,15 @@ import React from "react";
 import { guessed } from "../const";
 import { GameStore } from "../GameStore";
 import { useNotesStore } from "../NotesContext";
-import { useRootStore } from "../RootStateContext";
 import { equalAny, lengthArr } from "../utils";
 import { CardItem } from "./CardItem";
 
 type PropType = {
   time: number;
-  getCards: GameStore['getCards']
+  gameStore: GameStore
 };
 
-export const Table: React.FC<PropType> = ({ time, getCards }) => {
+export const Table: React.FC<PropType> = ({ time, gameStore }) => {
   const notesStore = useNotesStore();
   const [cards, setCards] = React.useState<Array<string>>([]);
 
@@ -33,7 +32,7 @@ export const Table: React.FC<PropType> = ({ time, getCards }) => {
     setTimeout(() => {
       setGuessedCards([]);
     }, 3000);
-    setCards(getCards);
+    setCards(gameStore.mixCards());
   }, [notesStore]);
 
   React.useEffect(() => {
@@ -44,14 +43,14 @@ export const Table: React.FC<PropType> = ({ time, getCards }) => {
       if (equalAny<string>(prevLetter, newLetter)) {
         setColor(true);
         timeout = setTimeout(() => {
-          clearUse();
+          setId();
         }, 1000);
 
         setGuessedCards((prev) => [...prev, newLetter]);
       } else {
         setColor(false);
         timeout = setTimeout(() => {
-          clearUse();
+          setId();
         }, 1000);
       }
     }
@@ -61,16 +60,17 @@ export const Table: React.FC<PropType> = ({ time, getCards }) => {
   }, [prevId]);
 
   React.useEffect(() => {
-    if (
-      !time &&
-      !equalAny<number>(lengthArr(guessedCards), lengthArr(guessed))
-    ) {
+    if (!time && !equalAny<number>(lengthArr(guessedCards),lengthArr(guessed))) {
       setWon(false);
     }
   }, [time]);
 
   React.useEffect(() => {
-    if (time && equalAny<number>(lengthArr(guessedCards), lengthArr(guessed))) {
+    if (time && equalAny<number>(lengthArr(guessedCards),lengthArr(guessed))) {
+      console.log(guessedCards.length === guessed.length);
+      console.log(time);
+      console.log(time && guessedCards.length === guessed.length);
+
       setWon(true);
     }
   }, [prevId]);
@@ -81,28 +81,19 @@ export const Table: React.FC<PropType> = ({ time, getCards }) => {
     letter: string
   ) => {
     if (!pause) {
-      setId(newId, id);
-      setLetter(newLetter, letter);
+      setPrevId(newId);
+      setNewId(id);
+      setPrevLetter(newLetter);
+      setNewLetter(letter);
     }
   };
 
-  const setId = (prev: string, next: string) => {
-    setPrevId(prev);
-    setNewId(next);
-  };
-
-  const setLetter = (prev: string, next: string) => {
-    setPrevLetter(prev);
-    setNewLetter(next);
-  };
-
-  const clearUse = () => {
+  const setId = () => {
     setPause(true);
     setPrevId("");
     setNewId("");
     setPause(false);
   };
-
   return (
     <div className="table">
       {won === null && !won ? (

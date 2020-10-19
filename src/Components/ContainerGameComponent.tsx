@@ -29,7 +29,7 @@ export const ContainerGameComponent: React.FC = () => {
   return useObserver(() => (
     <>
       <Timer time={time} />
-      <Table time={time} getCards={gameStore.getCards} />
+      <Table time={time} gameStore={gameStore} />
       <Reset />
     </>
   ));
